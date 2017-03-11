@@ -31,19 +31,19 @@ my $parse_error = 0;
 if (! defined $allownoparse || length($allownoparse) == 0) {
 
     my $file_list = `git diff --name-only --diff-filter=ACM $against`;
-    my ($parse_result, $file);
+    my ($parse_result, $file, @parse_lines);
     foreach $f (split(/\n/, $file_list)) {
       next unless $f =~ m/\.krl$/;
       $file = $f;
-      $parse_result = `cat $f | $PARSER`;
+      $parse_result = `cat $f | $PARSER 2>&1 >/dev/null`;
       #	print "$f: Parser says $parse_result";
       if ($?) {
-        $parse_error = 1; 
+        $parse_error = 1; @parse_lines = split('\n',$parse_result);
         last
       }
     }
 
     if ($parse_error) {
-	die "Parse errors in $file: $parse_result\n\nYou can disable checking by setting the hook.allownoparse to true\n";
+	die "Parse errors in $file:\n\n$parse_lines[4]\n$parse_lines[5]\n$parse_lines[6]\n$parse_lines[7]\n$parse_lines[8]\n\nYou can disable checking by setting the hook.allownoparse to true\n";
     }
 }
